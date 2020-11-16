@@ -25,6 +25,20 @@ class players_list(APIView):
             return Response({"status": "failed"}, status=404)
 
 
+
+class players_list_by_team(APIView):
+    permission_classes = (AllowAny, )
+    def get(self, request, pk):
+        try:
+            tm = Team.objects.get(pk=pk)
+            data = serializers.serialize(
+                "json", Player.objects.filter(team=tm))
+            json_data = {"status": "success", "data": json.loads(data)}
+            return Response(json_data)
+        except:
+            return Response({"status": "failed"}, status=404)
+
+
 class player_details(APIView):
     permission_classes = (AllowAny, )
     def get(self, request, pk):
@@ -50,10 +64,15 @@ class add_player(APIView):
             print("This is working fine")
             print(request.data)
             data = request.data["body"]
-            tm = Team.objects.get(pk=data["team"])
-            print(tm)
-            player = Player(first_name=data["first_name"], last_name=data["last_name"], date_of_birth=data["date_of_birth"], team=tm)
-            player.save()
+            if data["team"] != "Not Known":
+                tm = Team.objects.get(pk=data["team"])
+                print(tm)
+                player = Player(first_name=data["first_name"], last_name=data["last_name"], date_of_birth=data["date_of_birth"], team=tm)
+                player.save()
+            else:
+                player = Player(first_name=data["first_name"], last_name=data["last_name"], date_of_birth=data["date_of_birth"], team=None)
+                player.save()
+
             return Response({"status": "success"}, status=201)
         except AttributeError:
             return Response({"status": "failed", "err_message": "Please enter the valid attribute credential"}, status=403)
@@ -78,14 +97,24 @@ class delete_player(APIView):
 class update_player(APIView):
     permission_classes = (AllowAny, )
     def post(self, request, pk):
-        data = request.data["body"]["data"]
+        data = request.data["body"]
         try:
             if Player.objects.filter(pk=pk).exists():
                 qs = Player.objects.get(pk=pk)
                 dictionary_model = model_to_dict(qs)
-                Player.objects.filter(pk=pk).update(first_name=data["first_name"], last_name=data["last_name"],
-                                                                        date_of_birth=data["date_of_birth"], team=data["team"])
-                return Response({"status": "success", "data": dictionary_model}, status=203)
+
+                if data["team"] != 'Not Known':
+
+                    tm = Team.objects.get(pk=data["team"])
+
+                    Player.objects.filter(pk=pk).update(first_name=data["first_name"], last_name=data["last_name"],
+                                                                            date_of_birth=data["date_of_birth"], team=tm)
+                    return Response({"status": "success", "data": dictionary_model}, status=201)
+                else:
+                    Player.objects.filter(pk=pk).update(first_name=data["first_name"], last_name=data["last_name"],
+                                                                            date_of_birth=data["date_of_birth"], team=None)
+                    return Response({"status": "success", "data": dictionary_model}, status=201)
+
             else: 
                 return Response({"status": "failed", "err_message": "Player with the given Id doesn't exist"}, status=403)
         except:

@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from django.core import serializers
 import json
 from django.forms.models import model_to_dict
-
+from teams.models import Team
 
 def index(request):
     return HttpResponse("Hello, world. You're at the players page.")
@@ -40,13 +40,19 @@ class player_details(APIView):
                 "err_message": "Player Doesn't exist with the given player id"}
             return Response(err_data, status=404)
 
-    
+
+
+
 class add_player(APIView):
     permission_classes = (AllowAny, )
     def post(self, request):
         try:
-            data = request.data["body"]["data"]
-            player = Player(first_name=data["first_name"], last_name=data["last_name"], date_of_birth=data["date_of_birth"], team=data["team"])
+            print("This is working fine")
+            print(request.data)
+            data = request.data["body"]
+            tm = Team.objects.get(pk=data["team"])
+            print(tm)
+            player = Player(first_name=data["first_name"], last_name=data["last_name"], date_of_birth=data["date_of_birth"], team=tm)
             player.save()
             return Response({"status": "success"}, status=201)
         except AttributeError:

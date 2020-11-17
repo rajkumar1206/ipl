@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'd1l-$g82itqe=v!^mkz&3hd_q^0y88#4psap&*o(#q8_q00ua&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['ipl-database.herokuapp.com', 'ipl-database-pro.github.io', '127.0.0.1']
 
